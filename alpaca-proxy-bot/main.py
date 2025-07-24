@@ -9,22 +9,29 @@ ALPACA_SECRET_KEY = 'hujr7cgZERs0NYSCzHYBvF5sHDEQxXFJK872UC4y'
 
 @app.route('/alpaca/account', methods=['GET'])
 def proxy_account():
-    _ = request.headers.get("X-API-KEY")  # Dummy key to satisfy ChatGPT
+    _ = request.headers.get("X-API-KEY")  # Dummy for ChatGPT auth
 
-    alpaca_url = 'https://paper-api.alpaca.markets/v2/account'
     headers = {
         'APCA-API-KEY-ID': ALPACA_KEY_ID,
         'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY
     }
 
-    response = requests.get(alpaca_url, headers=headers)
+    response = requests.get('https://paper-api.alpaca.markets/v2/account', headers=headers)
 
-    print("DEBUG: Alpaca response:", response.json())  # Optional: log it in Render
-    return jsonify(response.json()), response.status_code
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to retrieve account"}), response.status_code
 
-@app.route('/')
-def home():
-    return '✅ Alpaca Proxy is running!'
+    data = response.json()
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000, debug=True)
+    # Cast numeric strings to actual float types for compatibility with ChatGPT
+    cleaned = {
+        "account_number": data.get("account_number"),
+        "status": data.get("status"),
+        "currency": data.get("currency"),
+        "cash": float(data.get("cash", 0)),
+        "equity": float(data.get("equity", 0)),
+        "buying_power": float(data.get("buying_power", 0)),
+        "portfolio_value": float(data.get("portfolio_value", 0))
+    }
+
+    return jsonify(cleaned), 200
