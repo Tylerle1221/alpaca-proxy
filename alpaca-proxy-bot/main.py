@@ -10,14 +10,13 @@ ALPACA_SECRET_KEY = os.environ.get('ALPACA_SECRET_KEY')
 
 @app.route('/alpaca/account', methods=['GET'])
 def proxy_account():
-    _ = request.headers.get("X-API-KEY")
+    _ = request.headers.get("X-API-KEY")  # Accept and ignore X-API-KEY  # Not used, but accepted
     alpaca_url = 'https://paper-api.alpaca.markets/v2/account'
     headers = {
         'APCA-API-KEY-ID': ALPACA_KEY_ID,
         'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY
     }
     response = requests.get(alpaca_url, headers=headers)
-    print("DEBUG: Alpaca response:", response.json())  # 🔍 Print the full JSON
     return jsonify(response.json()), response.status_code
 
 @app.route('/alpaca/order', methods=['POST'])
